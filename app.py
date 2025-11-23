@@ -1,8 +1,8 @@
-
 import streamlit as st
 import requests
 import pandas as pd
 import json
+from bitlyshortener import Shortener
 from datetime import date, datetime
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import matplotlib.pyplot as plt
@@ -109,12 +109,14 @@ def generate_affiliate_link(url: str) -> str:
 
 
 def shorten_with_tinyurl(url: str) -> str:
-    api_url = f"http://tinyurl.com/api-create.php?url={url}"
-    response = requests.get(api_url)
-    if response.status_code == 200:
-        return response.text.strip()
-    else:
-        st.error(f"TinyURL API failed: {response.status_code}")
+ 
+    try:
+        tokens_pool = ["ab3200059b349980aeb332261bca1a3a9b01538a"]  # Replace with your token
+        shortener = Shortener(tokens=tokens_pool, max_cache_size=8192)
+        shortened_urls = shortener.shorten_urls([url])
+        return shortened_urls[0]
+    except:
+        st.error(f"Bitly API failed")
         return url
 
 def visualize_data(df):
@@ -300,8 +302,11 @@ def main():
         if st.button("Generate Affiliate Link"):
             if original_url.strip():
                 affiliate_link = generate_affiliate_link(original_url)
+                print(st.session_state['aff_ext_param1'])
                 affiliate_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}"
+                print(affiliate_link)
                 tiny_link = shorten_with_tinyurl(affiliate_link)
+                print(tiny_link)
                 st.success("✅ Normal Affiliate Link Generated")
                 st.code(tiny_link, language="text")
             else:
