@@ -108,17 +108,40 @@ def generate_affiliate_link(url: str) -> str:
     return final_url
 
 
-def shorten_with_tinyurl(url: str) -> str:
+# def shorten_with_tinyurl(url: str) -> str:
  
+#     try:
+#         tokens_pool = ["ab3200059b349980aeb332261bca1a3a9b01538a"]  # Replace with your token
+#         shortener = Shortener(tokens=tokens_pool, max_cache_size=8192)
+#         shortened_urls = shortener.shorten_urls([url])
+#         return shortened_urls[0]
+#     except:
+#         st.error(f"Bitly API failed")
+#         return url
+TINYURL_TOKEN = "58PTRaCIakB40oTuqkzG5RYr87WROYTNMEmcHVwgbZw59XvbpbJoou1gYyuC"
+def shorten_with_tinyurl(url: str) -> str:
     try:
-        tokens_pool = ["ab3200059b349980aeb332261bca1a3a9b01538a"]  # Replace with your token
-        shortener = Shortener(tokens=tokens_pool, max_cache_size=8192)
-        shortened_urls = shortener.shorten_urls([url])
-        return shortened_urls[0]
-    except:
-        st.error(f"Bitly API failed")
-        return url
+        response = requests.post(
+            "https://api.tinyurl.com/create",
+            headers={
+                "Authorization": f"Bearer {TINYURL_TOKEN}",
+                "Content-Type": "application/json"
+            },
+            json={"url": url},
+            timeout=8
+        )
 
+        if response.status_code == 200:
+            data = response.json()
+            return data["data"]["tiny_url"]
+        else:
+            st.error(f"TinyURL error {response.status_code}: {response.text}")
+
+    except Exception as e:
+        st.error(f"TinyURL API failed: {e}")
+
+    return url
+    
 def visualize_data(df):
     st.markdown("## 📊 Data Insights")
 
